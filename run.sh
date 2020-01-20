@@ -1,6 +1,7 @@
 #!/bin/bash
 
 IN=input-files
+SCR=sed-scripts
 
 ex1() {
     # shows: that sed finds the pattern /old/ and substitues 'new' for
@@ -83,8 +84,70 @@ ex12() {
     echo '/A/' | sed 's_/A/_/a/_'
 }
 
+ex13() {
+    seq 10 > $IN/seq-10
+    # shows: can have multiple sed expressions in a call using the -e
+    # flag multiple times
+    sed -e s/3/0/ -e s/9/0/ -e s/10/0/ $IN/seq-10
+}
+
+ex14() {
+    seq 10 > $IN/seq-10
+    # shows: can have multiple sed expressions in a call using ';'
+    # between expressions
+    sed 's/3/0/ ; s/10/0/' $IN/seq-10
+}
+
+ex15() {
+    # create a starter file that sed will update
+    echo '...A...' > $IN/a0
+    # run sed against the copy to create a
+    sed 's/A/B/' $IN/a0 > $IN/a1
+    # over-write original file with processed file
+    mv $IN/a1 $IN/a0
+    # show the original file that is now updated
+    cat input-files/a0
+    # a1 no longer exists, a1 is now a0
+}
+
+ex16() {
+    # shows: running sed using a script (in this case s1.sed)
+    sed -f $SCR/s1.sed $IN/rgb
+}
+
+ex17() {
+    cat $SCR/s2.sed
+    echo
+
+    # shows: multiple commands executing against a single line
+    # changing what was updated by the first command
+    echo blue | sed -f $SCR/s2.sed
+}
+
+ex18() {
+    cat $SCR/bad-s2.sed
+    echo blue | sed -f $SCR/bad-s2.sed
+    echo
+    echo "command in script should not have quotes '' "
+}
+
+ex19() {
+    local nums="$IN/nums"
+    rm -rf $nums
+    mkdir -p $nums
+    for a in $(seq 9); do
+	    echo "number: $a" > $nums/$a.in
+    done
+    # shows: iterating over a set of file manipulating them and then
+    # replacing the original with the updated version
+    for file in $nums/*.in; do
+	    sed -f $SCR/a.sed $file > $nums/$a.temp
+	    mv $nums/$a.temp $nums/$a.in
+    done
+}
+
 ex() {
-    "ex$1"
+  "ex$1"
 }
 
 "$@"
